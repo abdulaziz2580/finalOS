@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@latest"></script>
+    <style>
+        /* Custom CSS for the message box */
+        #message-box {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #f0fdf4;
+            color: #15803d;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #16a34a;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        #message-box.show {
+            display: block;
+        }
+
+        #message-box.error {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border-color: #dc2626;
+        }
+
+        /* Custom CSS for the table */
+        #student-table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        #student-table thead tr {
+            background-color: #f3f4f6;
+            color: #6b7280;
+            text-align: left;
+        }
+
+        #student-table th,
+        #student-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        #student-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        #student-table tbody tr {
+            background-color: white;
+        }
+
+        .delete-btn {
+            background-color: #dc2626;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .delete-btn:hover {
+            background-color: #b91c1c;
+        }
+
+        .actions-cell {
+            text-align: center;
+        }
+
+        /* Custom styles for form */
+        #add-student-form-container {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        #add-student-form-container h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        #add-student-form .space-y-4>div {
+            margin-bottom: 1rem;
+        }
+
+        #add-student-form label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        #add-student-form input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            color: #4b5563;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        #add-student-form input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        #add-student-form button {
+            background-color: #10b981;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            display: block;
+            margin-top: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #add-student-form button:hover {
+            background-color: #059669;
+        }
+
+        #student-list-container {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        #student-list-container h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        #loading {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        #error {
+            text-align: center;
+            color: #dc2626;
+            padding: 1rem;
+            border: 1px solid #dc2626;
+            border-radius: 0.375rem;
+            background-color: #fee2e2;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-inter antialiased">
+    <div class="min-h-screen flex flex-col items-center justify-start py-10">
+        <h1 class="text-4xl font-semibold text-blue-600 mb-8">Student Management</h1>
+
+        <div id="message-box" class="hidden"></div>
+
+        <div id="add-student-form-container">
+            <h2>Add New Student</h2>
+            <form id="add-student-form" class="space-y-4">
+                <div>
+                    <label for="student_id">Student ID:</label>
+                    <input type="text" id="student_id" name="student_id" required>
+                </div>
+                <div>
+                    <label for="age">Age:</label>
+                    <input type="number" id="age" name="age" required>
+                </div>
+                <div>
+                    <label for="gender">Gender:</label>
+                    <input type="text" id="gender" name="gender" required>
+                </div>
+                <div>
+                    <label for="study_hours_per_day">Study Hours/Day:</label>
+                    <input type="number" id="study_hours_per_day" name="study_hours_per_day" required step="0.1">
+                </div>
+                <div>
+                    <label for="social_media_hours">Social Media Hours/Day:</label>
+                    <input type="number" id="social_media_hours" name="social_media_hours" required step="0.1">
+                </div>
+                <div>
+                    <label for="part_time_job">Part-Time Job:</label>
+                    <input type="text" id="part_time_job" name="part_time_job" required>
+                </div>
+                <div>
+                    <label for="sleep_hours">Sleep Hours/Day:</label>
+                    <input type="number" id="sleep_hours" name="sleep_hours" required step="0.1">
+                </div>
+                <div>
+                    <label for="diet_quality">Diet Quality:</label>
+                    <input type="text" id="diet_quality" name="diet_quality" required>
+                </div>
+                <div>
+                    <label for="parental_education_level">Parental Education Level:</label>
+                    <input type="text" id="parental_education_level" name="parental_education_level" required>
+                </div>
+                <div>
+                    <label for="internet_quality">Internet Quality:</label>
+                    <input type="text" id="internet_quality" name="internet_quality" required>
+                </div>
+                <button type="submit">Add Student</button>
+            </form>
+        </div>
+
+        <div id="student-list-container">
+            <h2>Student List</h2>
+            <div id="loading" class="hidden">
+                <svg class="animate-spin h-5 w-5 mr-3 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg"
+                    fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                Loading students...
+            </div>
+            <div id="error" class="hidden"></div>
+            <table id="student-table" class="hidden">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Study Hours</th>
+                        <th>Social Media Hours</th>
+                        <th>Part-Time Job</th>
+                        <th>Sleep Hours</th>
+                        <th>Diet Quality</th>
+                        <th>Parental Education</th>
+                        <th>Internet Quality</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://65.0.179.224:9000/api';
+
+        const studentListTable = document.getElementById('student-table');
+        const studentListContainer = document.getElementById('student-list-container');
+        const addStudentForm = document.getElementById('add-student-form');
+        const loadingIndicator = document.getElementById('loading');
+        const errorDisplay = document.getElementById('error');
+        const messageBox = document.getElementById('message-box');
+
+        function showMessage(message, type = 'success') {
+            messageBox.textContent = message;
+            messageBox.className = `fixed top-4 left-1/2 transform -translate-x-1/2 bg-${type === 'success' ? 'green' : 'red'}-100 text-${type === 'success' ? 'green' : 'red'}-700 border border-${type === 'success' ? 'green' : 'red'}-400 px-4 py-2 rounded shadow-md`;
+            messageBox.classList.add('show');
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+        function fetchStudents() {
+            loadingIndicator.classList.remove('hidden');
+            errorDisplay.classList.add('hidden');
+            studentListTable.classList.add('hidden');
+
+            fetch(`${API_BASE_URL}/students`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    loadingIndicator.classList.add('hidden');
+                    studentListTable.classList.remove('hidden');
+                    renderStudents(data);
+                })
+                .catch(error => {
+                    loadingIndicator.classList.add('hidden');
+                    errorDisplay.classList.remove('hidden');
+                    errorDisplay.textContent = `Error fetching students: ${error.message}`;
+                });
+        }
+
+        function renderStudents(students) {
+            const tableBody = studentListTable.querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            students.forEach(student => {
+                const row = tableBody.insertRow();
+                const studentIdCell = row.insertCell();
+                const ageCell = row.insertCell();
+                const genderCell = row.insertCell();
+                const studyHoursCell = row.insertCell();
+                const socialMediaHoursCell = row.insertCell();
+                const partTimeJobCell = row.insertCell();
+                const sleepHoursCell = row.insertCell();
+                const dietQualityCell = row.insertCell();
+                const parentalEducationLevelCell = row.insertCell();
+                const internetQualityCell = row.insertCell();
+                const actionsCell = row.insertCell();
+
+                studentIdCell.textContent = student.student_id;
+                ageCell.textContent = student.age;
+                genderCell.textContent = student.gender;
+                studyHoursCell.textContent = student.study_hours_per_day;
+                socialMediaHoursCell.textContent = student.social_media_hours;
+                partTimeJobCell.textContent = student.part_time_job;
+                sleepHoursCell.textContent = student.sleep_hours;
+                dietQualityCell.textContent = student.diet_quality;
+                parentalEducationLevelCell.textContent = student.parental_education_level;
+                internetQualityCell.textContent = student.internet_quality;
+                actionsCell.innerHTML = `<button class="delete-btn" data-student-id="${student.student_id}">Delete</button>`;
+                actionsCell.classList.add('actions-cell');
+            });
+
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const studentId = button.dataset.studentId;
+                    deleteStudent(studentId);
+                });
+            });
+        }
+
+        function deleteStudent(studentId) {
+            fetch(`${API_BASE_URL}/students/${studentId}`, {
+                method: 'DELETE',
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.message || `HTTP error! status: ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    showMessage(data.message);
+                    fetchStudents();
+                })
+                .catch(error => {
+                    showMessage(error.message, 'error');
+                });
+        }
+
+        addStudentForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(addStudentForm);
+            const studentData = {
+                student_id: formData.get('student_id'),
+                age: parseInt(formData.get('age')),
+                gender: formData.get('gender'),
+                study_hours_per_day: parseFloat(formData.get('study_hours_per_day')),
+                social_media_hours: parseFloat(formData.get('social_media_hours')),
+                part_time_job: formData.get('part_time_job'),
+                sleep_hours: parseFloat(formData.get('sleep_hours')),
+                diet_quality: formData.get('diet_quality'),
+                parental_education_level: formData.get('parental_education_level'),
+                internet_quality: formData.get('internet_quality'),
+            };
+
+            fetch(`${API_BASE_URL}/students`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(studentData),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.message || `HTTP error! status: ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    showMessage(data.message);
+                    fetchStudents();
+                    addStudentForm.reset();
+                })
+                .catch(error => {
+                    showMessage(error.message, 'error');
+                });
+        });
+
+        fetchStudents();
+    </script>
+</body>
+
+</html>
